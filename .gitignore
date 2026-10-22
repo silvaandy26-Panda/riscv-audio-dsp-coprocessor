@@ -1,0 +1,23 @@
+# Simulation and Synthesis Directory
+sim/
+work/
+INCA_libs/
+xsim.dir/
+.Xil/
+
+# Wavegraphs and data
+*.vcd
+*.fst
+*.wdb
+*.shm/
+*.trn
+
+# Logs and temporal reports
+*.log
+*.jou
+*.pb
+*.os
+
+# Python (Golden Model)
+__pycache__/
+*.pyc
