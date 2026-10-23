@@ -57,8 +57,6 @@ begin
 
 -- Senales de interrupción y audio MODIFICAR DESPUES
 irq_o <= '0';
-audio_out_valid_o <= '0';
-audio_out_data_o <= (others => '0');
 
 
 
@@ -104,8 +102,26 @@ begin
 
 end process;
 
+-- Instanciación del filtro FIR
+u_fir_filter : entity work.fir_filter
+    generic map (
+        DATA_WIDTH => DATA_WIDTH,
+        TAP_COUNT  => 4
+    )
+    port map (
+        clk_audio_i => clk_audio_i,
+        rst_audio_ni => rst_audio_ni,
+        
+        coef0_i => coef0_reg,
+        coef1_i => coef1_reg,
+        coef2_i => coef2_reg,
+        coef3_i => coef3_reg,
 
-
-
+        data_in_valid_i => audio_in_valid_i,
+        data_in_i       => audio_in_data_i,
+        
+        data_out_valid_o => audio_out_valid_o,
+        data_out_o       => audio_out_data_o
+    );
 
 end architecture rtl;
