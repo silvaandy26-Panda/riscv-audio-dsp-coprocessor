@@ -33,7 +33,7 @@ architecture rtl of fir_filter is
     type sample_array_type is array (0 to TAP_COUNT-1) of signed(DATA_WIDTH-1 downto 0);
     signal x_reg : sample_array_type := (others => (others => '0'));
 
-    type product_array_type is array (0 to TAP_COUNT-1) of signed(2*DATA_WIDTH -1);
+    type product_array_type is array (0 to TAP_COUNT-1) of signed(2*DATA_WIDTH-1 downto 0);
     signal products : product_array_type := (others => (others => '0'));
 
     -- Signal for the filter output

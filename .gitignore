@@ -21,3 +21,14 @@ xsim.dir/
 # Python (Golden Model)
 __pycache__/
 *.pyc
+
+# GHDL compilation artifacts
+*.cf
+*.o
+tb_audio_dsp_coprocessor
+tb_audio_dsp_coprocessor.exe
+
+# Simulation waveforms
+*.vcd
+*.fst
+*.ghw
