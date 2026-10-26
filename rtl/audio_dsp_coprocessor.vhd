@@ -53,6 +53,8 @@ architecture rtl of audio_dsp_coprocessor is
     signal busy_s : std_logic;
     signal done_s : std_logic;
 
+    signal fir_out_valid_s : std_logic;
+
 begin
 
 
@@ -99,6 +101,13 @@ begin
 
 end process;
 
+-- Logic Signals for the DSP FSM
+busy_s              <= ctrl_reg(0); -- Bit 0 of control register indicates busy state 
+done_s              <= fir_out_valid_s; -- Bit 1 of control register indicates done state
+audio_out_valid_o   <= fir_out_valid_s; -- Output valid signal from FIR filter
+
+irq_o               <= done_s and ctrl_reg(1); -- Interrupt signal to RISC-V when processing is done
+
 -- FIR filter instance
 u_fir_filter : entity work.fir_filter
     generic map (
@@ -114,10 +123,10 @@ u_fir_filter : entity work.fir_filter
         coef2_i => coef2_reg,
         coef3_i => coef3_reg,
 
-        data_in_valid_i => audio_in_valid_i,
+        data_in_valid_i => audio_in_valid_i and ctrl_reg(0), -- Only process input when busy
         data_in_i       => audio_in_data_i,
         
-        data_out_valid_o => audio_out_valid_o,
+        data_out_valid_o => fir_out_valid_s,
         data_out_o       => audio_out_data_o
     );
 
