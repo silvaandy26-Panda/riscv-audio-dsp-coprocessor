@@ -4,39 +4,39 @@ use ieee.numeric_std.all;
 
 entity fir_filter is
     generic (
-        DATA_WIDTH : integer := 16; -- Precisión de las muestras de audio
-        TAP_COUNT  : integer := 4   -- Número de taps del filtro FIR
+        DATA_WIDTH : integer := 16; -- Precision of the audio samples
+        TAP_COUNT  : integer := 4   -- Number of taps of the FIR filter
     );
     port (
-        clk_audio_i : in  std_logic; -- Reloj de entrada
-        rst_audio_ni: in  std_logic; -- Reset asíncrono activo en bajo
+        clk_audio_i : in  std_logic; -- Input clock
+        rst_audio_ni: in  std_logic; -- Asynchronous reset active low
         
-        -- Coeficientes
+        -- Coeficients
         coef0_i : in  std_logic_vector(DATA_WIDTH-1 downto 0);
         coef1_i : in  std_logic_vector(DATA_WIDTH-1 downto 0);
         coef2_i : in  std_logic_vector(DATA_WIDTH-1 downto 0);
         coef3_i : in  std_logic_vector(DATA_WIDTH-1 downto 0);
 
-        -- Entrada de datos de audio
-        data_in_valid_i : in  std_logic; -- Señal de validez de datos de entrada
-        data_in_i       : in  std_logic_vector(DATA_WIDTH-1 downto 0); -- Datos de entrada
+        -- Input data of audio
+        data_in_valid_i : in  std_logic; -- Signal of input data validity
+        data_in_i       : in  std_logic_vector(DATA_WIDTH-1 downto 0); -- Input data
         
-        -- Salida de datos filtrados
-        data_out_valid_o : out std_logic; -- Señal de validez de datos de salida
-        data_out_o       : out std_logic_vector(DATA_WIDTH-1 downto 0) -- Datos filtrados
+        -- Output data of filtered audio
+        data_out_valid_o : out std_logic; -- Signal of output data validity
+        data_out_o       : out std_logic_vector(DATA_WIDTH-1 downto 0) -- Filtered data
     );
 end entity fir_filter;
 
 architecture rtl of fir_filter is
 
-    -- Registro de desplazamiento para almacenar las muestras de entrada
+    -- Register to store the last TAP_COUNT samples of audio input
     type sample_array_type is array (0 to TAP_COUNT-1) of signed(DATA_WIDTH-1 downto 0);
     signal x_reg : sample_array_type := (others => (others => '0'));
 
     type product_array_type is array (0 to TAP_COUNT-1) of signed(2*DATA_WIDTH -1);
     signal products : product_array_type := (others => (others => '0'));
 
-    -- Señal para la salida del filtro
+    -- Signal for the filter output
     signal filter_output : signed(33 downto 0):= (others => '0');
 
 begin
@@ -53,7 +53,7 @@ begin
             data_out_valid_o <= data_in_valid_i;
 
             if data_in_valid_i = '1' then
-                -- Desplazar las muestras de entrada
+                -- Shift the samples in the register and insert the new sample
                 x_reg(0) <= signed(data_in_i);
                 for i in 1 to TAP_COUNT-1 loop
                     x_reg(i) <= x_reg(i-1);
@@ -66,13 +66,13 @@ begin
 
     end process;
 
-    -- Calcular los productos de cada tap con su coeficiente correspondiente
+    -- Products of the samples and coefficients
         products(0) <= x_reg(0) * signed(coef0_i);
         products(1) <= x_reg(1) * signed(coef1_i);
         products(2) <= x_reg(2) * signed(coef2_i);
         products(3) <= x_reg(3) * signed(coef3_i);
 
-        -- Sumar los productos para obtener la salida del filtro
+        -- Sum of the products to get the filter output
         filter_output <= resize(products(0), 34) + 
                             resize(products(1), 34) + 
                             resize(products(2), 34) + 

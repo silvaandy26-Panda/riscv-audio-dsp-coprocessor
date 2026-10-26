@@ -4,63 +4,60 @@ use ieee.numeric_std.all;
 
 entity audio_dsp_coprocessor is
     generic (
-        DATA_WIDTH : integer := 16; -- Precisión de las muestras de audio
-        ADDR_WIDTH : integer := 8   -- Ancho del bus de direcciones de control
+        DATA_WIDTH : integer := 16; -- Data Samples Size (Audio Precision)
+        ADDR_WIDTH : integer := 8   -- Bus bandwidth for control addresses
     );
     port (
-        -- ==========================================
-        -- Dominio de Reloj del Sistema (RISC-V Bus)
-        -- ==========================================
-        clk_sys_i   : in  std_logic; -- Reloj rápido (ej. 100 MHz)
-        rst_sys_ni  : in  std_logic; -- Reset asíncrono activo en bajo
+
+        -- Clock of the System (RISC-V Bus)
+
+        clk_sys_i   : in  std_logic; -- System Clock (e.g., 100 MHz)
+        rst_sys_ni  : in  std_logic; -- Asynchronous Reset active low
         
-        -- Interfaz de Control (Memory-Mapped)
-        ctrl_en_i   : in  std_logic; -- Enable de interfaz de control
-        ctrl_we_i   : in  std_logic; -- Write Enable de entrada
-        ctrl_addr_i : in  std_logic_vector(ADDR_WIDTH-1 downto 0); -- Dirección de registro de control
-        ctrl_data_i : in  std_logic_vector(31 downto 0); -- Datos de entrada de control
-        ctrl_data_o : out std_logic_vector(31 downto 0); -- Datos de salida de control
+        -- Control Interface (Memory-Mapped)
+        ctrl_en_i   : in  std_logic; -- Enable of control interface
+        ctrl_we_i   : in  std_logic; -- Write Enable of input
+        ctrl_addr_i : in  std_logic_vector(ADDR_WIDTH-1 downto 0); -- Control register address
+        ctrl_data_i : in  std_logic_vector(31 downto 0); -- Control input data
+        ctrl_data_o : out std_logic_vector(31 downto 0); -- Control output data
         
-        -- Interrupción al RISC-V para avisar que terminó
+        -- Interrupt Signal to RISC-V
         irq_o       : out std_logic;
 
-        -- ==========================================
-        -- Dominio de Reloj de Audio (I2S Interface)
-        -- ==========================================
-        clk_audio_i : in  std_logic; -- Reloj lento (ej. 48 kHz)
-        rst_audio_ni: in  std_logic; -- Reset asíncrono activo en bajo
+
+        -- Audio Clock Domain (I2S Interface)
+
+        clk_audio_i : in  std_logic; -- Slow Clock (e.g., 48 kHz)
+        rst_audio_ni: in  std_logic; -- Asynchronous Reset active low
         
-        -- Streaming de Datos (Entrada del micrófono/ADC)
-        audio_in_valid_i : in  std_logic; -- Señal de validez de datos de entrada
-        audio_in_data_i  : in  std_logic_vector(DATA_WIDTH-1 downto 0); -- Datos de entrada de audio
+        -- Data Streaming (Microphone/ADC Input)
+        audio_in_valid_i : in  std_logic; -- Signal of input data validity
+        audio_in_data_i  : in  std_logic_vector(DATA_WIDTH-1 downto 0); -- Input audio data
         
-        -- Streaming de Datos (Salida al parlante/DAC)
-        audio_out_valid_o : out std_logic; -- Señal de validez de datos de salida
+        -- Data Streaming (Speaker/DAC Output)
+        audio_out_valid_o : out std_logic; -- Signal of output data validity
         audio_out_data_o  : out std_logic_vector(DATA_WIDTH-1 downto 0)
     );
 end entity audio_dsp_coprocessor;
 
 architecture rtl of audio_dsp_coprocessor is
 
-    -- Registros de Control y Coeficientes (R/W por RISC-V)
+    -- Control Registers and Coefficients (R/W by RISC-V)
     signal ctrl_reg  : std_logic_vector(31 downto 0);
     signal coef0_reg : std_logic_vector(15 downto 0);
     signal coef1_reg : std_logic_vector(15 downto 0);
     signal coef2_reg : std_logic_vector(15 downto 0);
     signal coef3_reg : std_logic_vector(15 downto 0);
 
-    -- Señales internas de estado impulsadas por la FSM del DSP (Read-Only por RISC-V)
+    -- Internal state signals driven by the DSP FSM (Read-Only by RISC-V)
     signal busy_s : std_logic;
     signal done_s : std_logic;
 
 begin
 
--- Senales de interrupción y audio MODIFICAR DESPUES
-irq_o <= '0';
 
-
-
-process(clk_sys_i, rst_sys_ni) -- Proceso de escritura
+    -- Control Register Write/Read Process
+process(clk_sys_i, rst_sys_ni) 
 begin
     if rst_sys_ni = '0' then
 
@@ -72,8 +69,8 @@ begin
         ctrl_data_o <= (others => '0');
 
     elsif rising_edge(clk_sys_i) then
-        if ctrl_en_i = '1' then --Habilitado el bus de control
-            if ctrl_we_i = '1' then --Escritura de registros de control
+        if ctrl_en_i = '1' then -- Enable control interface
+            if ctrl_we_i = '1' then --Write to Control Registers
                 case ctrl_addr_i is
                     when x"00" => ctrl_reg <= ctrl_data_i;
                     when x"10" => coef0_reg <= ctrl_data_i(15 downto 0);
@@ -84,7 +81,7 @@ begin
                 end case;
             
             
-            else --Lectura de Registros de Control
+            else --Read from Control Registers
                 case ctrl_addr_i is
                     when x"00" => ctrl_data_o <= ctrl_reg;
                     when x"04" => ctrl_data_o <= x"0000000" & "00" & done_s & busy_s;
@@ -102,7 +99,7 @@ begin
 
 end process;
 
--- Instanciación del filtro FIR
+-- FIR filter instance
 u_fir_filter : entity work.fir_filter
     generic map (
         DATA_WIDTH => DATA_WIDTH,
