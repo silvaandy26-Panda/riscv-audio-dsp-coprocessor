@@ -31,4 +31,9 @@ tb_audio_dsp_coprocessor.exe
 # Simulation waveforms
 *.vcd
 *.fst
-*.ghw
+*.ghwsynth.log
+*.v
+
+synth.log
+*_netlist_*.v
+

@@ -1,1 +1,3 @@
 This repository contains a VHDL-based ASIC design for a domain-specific System-on-Chip (SoC). It integrates a RISC-V CPU with a dedicated audio DSP coprocessor designed to process raw audio signals, execute hardware-accelerated filtering, and extract features for word recognition (Keyword Spotting). Built as a personal exploration into open-source ASIC design workflows.
+
+Work in process, currently just finished the coding, testing and synthesis using Skywater 130nm for the audio coprocessor.
