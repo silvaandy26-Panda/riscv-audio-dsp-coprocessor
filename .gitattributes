@@ -1,0 +1,4 @@
+# Forzar siempre saltos de línea formato Linux (LF) para scripts y herramientas de diseño
+*.sh text eol=lf
+*.tcl text eol=lf
+*.vhd text eol=lf
