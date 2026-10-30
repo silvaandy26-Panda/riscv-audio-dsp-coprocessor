@@ -2,10 +2,10 @@
 plugin -i ghdl
 
 # Analize and elaborate the VHDL hierarchy with VHDL-2008
-ghdl --std=08 rtl/fir_filter.vhd rtl/audio_dsp_coprocessor.vhd -e audio_dsp_coprocessor
+ghdl --std=08 rtl/fir_filter.vhd rtl/audio_dsp_coprocessor.vhd rtl/audio_dsp_apb_wrapper.vhd -e audio_dsp_apb_wrapper
 
 # Synth generic RTL to generic netlist
-synth -top audio_dsp_coprocessor
+synth -top audio_dsp_apb_wrapper
 
 # Mapping of Flip-Flops to the Sky130   
 dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -21,4 +21,4 @@ stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__t
 
 # Generate the final netlist in Verilog format
 # 8. Exportar el netlist a nivel de puertas (Gate-Level Netlist)
-write_verilog -noattr audio_dsp_coprocessor_netlist_sky130.v
+write_verilog -noattr audio_dsp_apb_wrapper_netlist_sky130.v
