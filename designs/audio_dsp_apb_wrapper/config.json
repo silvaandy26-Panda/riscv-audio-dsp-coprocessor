@@ -1,0 +1,30 @@
+{
+  "DESIGN_NAME": "audio_dsp_apb_wrapper",
+  "VERILOG_FILES": [
+    "dir::src/audio_dsp_apb_wrapper_netlist_sky130.v"
+  ],
+  "CLOCK_PORT": "pclk",
+  "CLOCK_PERIOD": 10.0,
+  "BASE_SDC_FILE": "dir::src/constraints.sdc",
+  "PDK": "sky130A",
+  "STD_CELL_LIBRARY": "sky130_fd_sc_hd",
+
+  "DESIGN_IS_CORE": false,
+  "FP_PDN_CORE_RING": false,
+
+  "FP_CORE_UTIL": 55,
+  "FP_ASPECT_RATIO": 1.0,
+  "FP_SIZING": "relative",
+
+  "PL_TARGET_DENSITY": 0.60,
+  "PL_RESIZER_DESIGN_OPTIMIZATIONS": true,
+  "PL_RESIZER_TIMING_OPTIMIZATIONS": true,
+
+  "GLB_RESIZER_TIMING_OPTIMIZATIONS": true,
+  "GRT_ALLOW_CONGESTION": false,
+
+  "RUN_KLAYOUT_DRC": true,
+  "RUN_KLAYOUT_XOR": true,
+  "RUN_MAGIC_DRC": true,
+  "RUN_LVS": true
+}
