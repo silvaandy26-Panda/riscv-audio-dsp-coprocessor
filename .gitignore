@@ -37,3 +37,6 @@ tb_audio_dsp_coprocessor.exe
 synth.log
 *_netlist_*.v
 
+# Ignorar ejecuciones e intermedios de OpenLANE / LibreLane
+designs/**/runs/
+
