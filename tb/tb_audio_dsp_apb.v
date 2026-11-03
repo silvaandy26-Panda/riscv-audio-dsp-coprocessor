@@ -2,18 +2,18 @@
 
 module tb_audio_dsp_apb;
 
-  // Parámetros de reloj y diseño
+  // Clock and design parameters
   localparam CLK_SYS_PERIOD   = 10;        // 10 ns (100 MHz)
   localparam CLK_AUDIO_PERIOD = 20833;     // 20.833 us (48 kHz)
   localparam DATA_WIDTH       = 16;
 
-  // Señales de Reloj y Reset
+  // clock and reset signals
   reg pclk;
   reg presetn;
   reg clk_audio_i;
   reg rst_audio_ni;
 
-  // Interfaz APB3
+  // Interface APB3
   reg  [31:0] paddr;
   reg         psel;
   reg         penable;
@@ -23,14 +23,14 @@ module tb_audio_dsp_apb;
   wire        pready;
   wire        pslverr;
 
-  // Interfaz de Audio y Control
+  // Audio and Control
   reg  [DATA_WIDTH-1:0] audio_in_data_i;
   reg                   audio_in_valid_i;
   wire [DATA_WIDTH-1:0] audio_out_data_o;
   wire                  audio_out_valid_o;
   wire                  irq_o;
 
-  // Instancia del DUT (Netlist Gate-Level / RTL)
+  // DUT (Netlist Gate-Level / RTL)
   audio_dsp_apb_wrapper u_dut (
     .pclk             (pclk),
     .presetn          (presetn),
@@ -51,11 +51,11 @@ module tb_audio_dsp_apb;
     .irq_o            (irq_o)
   );
 
-  // Generación de Relojes
+  // clk generation
   always #(CLK_SYS_PERIOD / 2)       pclk = ~pclk;
   always #(CLK_AUDIO_PERIOD / 2.0) clk_audio_i = ~clk_audio_i;
 
-  // Tarea APB Write (Equivalente al procedure apb_write en VHDL)
+  // Write APB task
   task apb_write(input [31:0] addr, input [31:0] data);
     begin
       @(posedge pclk);
@@ -77,7 +77,7 @@ module tb_audio_dsp_apb;
     end
   endtask
 
-// Tarea APB Read (Corregida)
+// Read APB task
   task apb_read(input [31:0] addr);
     begin
       @(posedge pclk);
@@ -87,7 +87,7 @@ module tb_audio_dsp_apb;
       penable = 1'b0;
 
       @(posedge pclk);
-      penable = 1'b1; // Linea 90 corregida
+      penable = 1'b1; 
 
       @(posedge pclk);
       while (!pready) @(posedge pclk);
@@ -97,9 +97,9 @@ module tb_audio_dsp_apb;
     end
   endtask
 
-  // Proceso de Estímulos
+  // Stimulus
   initial begin
-    // Inicialización de señales
+    // Signal init
     pclk             = 1'b0;
     clk_audio_i      = 1'b0;
     presetn          = 1'b0;
@@ -112,11 +112,11 @@ module tb_audio_dsp_apb;
     audio_in_data_i  = {DATA_WIDTH{1'b0}};
     audio_in_valid_i = 1'b0;
 
-    // Configuración del volcado de formas de onda
+    // waveform dump
     $dumpfile("gls_output.vcd");
     $dumpvars(0, tb_audio_dsp_apb);
 
-    // Reset del DUT
+    // Reset DUT
     #50;
     presetn      = 1'b1;
     rst_audio_ni = 1'b1;
@@ -124,7 +124,6 @@ module tb_audio_dsp_apb;
 
     $display("[TB] Reset liberado. Iniciando escritura de coeficientes por APB...");
 
-    // Primera Secuencia: Escritura de Coeficientes del Filtro FIR
     // h0 = 0.5 (0x4000 Q1.15) -> Offset 0x10
     apb_write(32'h00000010, 32'h00004000);
 
@@ -137,23 +136,23 @@ module tb_audio_dsp_apb;
     // h3 = 0.0625 (0x0800 Q1.15) -> Offset 0x1C
     apb_write(32'h0000001C, 32'h00000800);
 
-    // Segunda Secuencia: Habilitar el procesador DSP (Bit 0: Enable DSP, Bit 1: Enable IRQ)
+    // Enable DSP processor (Bit 0: Enable DSP, Bit 1: Enable IRQ)
     apb_write(32'h00000000, 32'h00000003);
 
-    // Tercera Secuencia: Lectura de verificación de h0
+    // Read verification of h0
     apb_read(32'h00000010);
 
-    // Cuarta Secuencia: Enviar muestras de audio
+    // Send audio samples
     $display("[TB] Coeficientes cargados. Generando impulso de entrada en audio_in...");
     @(posedge clk_audio_i);
-    audio_in_data_i  = 16'h2000; // Impulso en Q1.15
+    audio_in_data_i  = 16'h2000; // Impulse in Q1.15 format
     audio_in_valid_i = 1'b1;
 
     @(posedge clk_audio_i);
     audio_in_data_i  = 16'h0000;
     audio_in_valid_i = 1'b0;
 
-    // Esperar respuesta del filtro (300 us)
+    
     #300000;
 
     $display("[TB] Simulación de 300 us completada exitosamente.");
